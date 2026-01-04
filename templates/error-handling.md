@@ -415,6 +415,7 @@ Tell the user what to do:
 ### Python Error Handler
 
 ```python
+import json
 from dataclasses import dataclass
 from typing import Optional, Any
 
