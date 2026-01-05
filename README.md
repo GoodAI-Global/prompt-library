@@ -24,6 +24,7 @@ This isn't a collection of experiments. Every prompt here has been:
 
 | Industry | Prompts | Description |
 |----------|---------|-------------|
+| [Healthcare](./healthcare/) | 4 prompts | Clinical notes, prior auth, medical coding, intake |
 | [Manufacturing](./manufacturing/) | 4 prompts | Quality control, maintenance, anomaly detection |
 | [Insurance](./insurance/) | 4 prompts | Claims processing, fraud detection, underwriting |
 
@@ -43,6 +44,15 @@ This isn't a collection of experiments. Every prompt here has been:
 | [Chain of Thought](./templates/chain-of-thought.md) | Multi-step reasoning required |
 | [Error Handling](./templates/error-handling.md) | Graceful degradation for edge cases |
 
+### Agentic & RAG Patterns
+
+| Template | When to Use |
+|----------|-------------|
+| [Tool Use](./templates/tool-use.md) | Function calling and API integration |
+| [Multi-Step Agent](./templates/multi-step-agent.md) | Complex task decomposition |
+| [Human-in-the-Loop](./templates/human-in-the-loop.md) | Approval workflows and oversight |
+| [Retrieval-Augmented](./templates/retrieval-augmented.md) | Document-grounded responses (RAG) |
+
 ---
 
 ## Directory Structure
@@ -52,6 +62,12 @@ prompt-library/
 ├── README.md                 # You are here
 ├── LICENSE                   # MIT License
 ├── PRINCIPLES.md             # Core prompt engineering principles
+├── CHANGELOG.md              # Version history
+├── healthcare/
+│   ├── clinical-notes-summarization.md
+│   ├── prior-authorization-extraction.md
+│   ├── medical-coding-assistance.md
+│   └── patient-intake-extraction.md
 ├── manufacturing/
 │   ├── quality-inspection-analysis.md
 │   ├── maintenance-log-interpretation.md
@@ -72,11 +88,21 @@ prompt-library/
 │   ├── anomaly-explanation.md
 │   ├── trend-interpretation.md
 │   └── root-cause-analysis.md
-└── templates/
-    ├── structured-output.md
-    ├── few-shot-learning.md
-    ├── chain-of-thought.md
-    └── error-handling.md
+├── templates/
+│   ├── structured-output.md
+│   ├── few-shot-learning.md
+│   ├── chain-of-thought.md
+│   ├── error-handling.md
+│   ├── tool-use.md
+│   ├── multi-step-agent.md
+│   ├── human-in-the-loop.md
+│   └── retrieval-augmented.md
+└── evals/
+    ├── README.md             # Evaluation framework docs
+    ├── run_evals.py          # Test runner
+    ├── config.yaml           # Configuration
+    ├── metrics/              # Accuracy, latency, cost metrics
+    └── test-cases/           # Golden test cases per prompt
 ```
 
 ---
@@ -152,6 +178,40 @@ Review the "Gotchas" section before production deployment.
 
 ---
 
+## Testing & Evaluation
+
+This library includes a comprehensive evaluation framework for regression testing and model comparison.
+
+### Quick Start
+
+```bash
+# Install dependencies
+pip install anthropic pyyaml rich
+
+# Set API key
+export ANTHROPIC_API_KEY="your-key"
+
+# Run all evaluations
+python evals/run_evals.py
+
+# Run specific category
+python evals/run_evals.py --category operations
+
+# Run with accuracy threshold
+python evals/run_evals.py --fail-under 95
+```
+
+### What's Included
+
+- **Test Cases**: Golden test cases for each prompt category
+- **Metrics**: Accuracy, latency, and cost tracking
+- **CI Integration**: GitHub Actions workflow for automated testing
+- **Model Comparison**: Compare outputs across different models
+
+See [evals/README.md](./evals/README.md) for complete documentation.
+
+---
+
 ## Contributing
 
 This is a production library. Contributions must include:
@@ -159,6 +219,8 @@ This is a production library. Contributions must include:
 2. At least 2 working examples
 3. Documented failure modes
 4. Edge case handling
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ---
 

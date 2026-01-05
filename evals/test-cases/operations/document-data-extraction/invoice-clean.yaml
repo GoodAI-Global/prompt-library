@@ -1,0 +1,114 @@
+# Test Case: Clean Invoice Extraction
+# Category: Happy Path
+# Description: Standard invoice with all fields clearly visible
+
+name: "Clean Invoice Extraction"
+description: "Standard invoice with all fields clearly visible and properly formatted"
+prompt_file: "operations/document-data-extraction.md"
+category: "happy-path"
+tags:
+  - "invoice"
+  - "complete-data"
+  - "happy-path"
+
+input:
+  document_text: |
+    INVOICE
+
+    Invoice Number: INV-2024-0542
+    Invoice Date: January 15, 2024
+    Due Date: February 14, 2024
+
+    FROM:
+    TechSupply Corporation
+    123 Innovation Drive
+    San Francisco, CA 94102
+    Phone: 555-123-4567
+    Email: billing@techsupply.example.com
+
+    BILL TO:
+    Acme Industries Inc.
+    456 Enterprise Boulevard
+    Austin, TX 78701
+    Attn: Accounts Payable
+
+    ITEMS:
+    ┌────────────────────────────────────────────────────────────┐
+    │ Description          │ Qty │ Unit Price │ Amount          │
+    ├────────────────────────────────────────────────────────────┤
+    │ Server Component A   │  5  │   $450.00  │     $2,250.00   │
+    │ Network Cable (50ft) │ 10  │    $25.00  │       $250.00   │
+    │ Mounting Hardware    │  2  │   $175.00  │       $350.00   │
+    │ Installation Service │  1  │   $500.00  │       $500.00   │
+    └────────────────────────────────────────────────────────────┘
+
+    Subtotal:                                         $3,350.00
+    Tax (8.25%):                                        $276.38
+    ─────────────────────────────────────────────────────────────
+    TOTAL DUE:                                        $3,626.38
+
+    Payment Terms: Net 30
+    Payment Methods: Wire Transfer, Check, ACH
+
+    Thank you for your business!
+
+  document_type: "invoice"
+  extraction_fields:
+    - vendor_name
+    - invoice_number
+    - invoice_date
+    - due_date
+    - total_amount
+    - line_items
+
+expected_output:
+  vendor_name: "TechSupply Corporation"
+  invoice_number: "INV-2024-0542"
+  invoice_date: "2024-01-15"
+  due_date: "2024-02-14"
+  subtotal: 3350.00
+  tax_amount: 276.38
+  total_amount: 3626.38
+  currency: "USD"
+  line_items:
+    - description: "Server Component A"
+      quantity: 5
+      unit_price: 450.00
+      amount: 2250.00
+    - description: "Network Cable (50ft)"
+      quantity: 10
+      unit_price: 25.00
+      amount: 250.00
+    - description: "Mounting Hardware"
+      quantity: 2
+      unit_price: 175.00
+      amount: 350.00
+    - description: "Installation Service"
+      quantity: 1
+      unit_price: 500.00
+      amount: 500.00
+
+evaluation_criteria:
+  - field: "vendor_name"
+    match_type: "exact"
+    required: true
+
+  - field: "invoice_number"
+    match_type: "exact"
+    required: true
+
+  - field: "invoice_date"
+    match_type: "exact"
+    required: true
+
+  - field: "total_amount"
+    match_type: "numeric"
+    tolerance: 0.01
+    required: true
+
+  - field: "line_items"
+    match_type: "array_contains"
+    required: false
+
+expected_confidence: 0.95
+expected_latency_ms: 2000

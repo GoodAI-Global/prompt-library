@@ -1,0 +1,73 @@
+# Test Case: Invoice with Missing Fields
+# Category: Edge Case
+# Description: Invoice missing several standard fields
+
+name: "Invoice with Missing Fields"
+description: "Invoice that is missing due date and has incomplete vendor information"
+prompt_file: "operations/document-data-extraction.md"
+category: "edge-case"
+tags:
+  - "invoice"
+  - "missing-data"
+  - "edge-case"
+
+input:
+  document_text: |
+    INVOICE #87234
+
+    Date: 03/22/2024
+
+    From: QuickShip LLC
+
+    To: Customer Services Dept
+
+    Items:
+    - Shipping supplies: $142.50
+    - Handling fee: $15.00
+
+    Total: $157.50
+
+  document_type: "invoice"
+  extraction_fields:
+    - vendor_name
+    - invoice_number
+    - invoice_date
+    - due_date
+    - total_amount
+
+expected_output:
+  vendor_name: "QuickShip LLC"
+  invoice_number: "87234"
+  invoice_date: "2024-03-22"
+  due_date: null
+  total_amount: 157.50
+  line_items:
+    - description: "Shipping supplies"
+      amount: 142.50
+    - description: "Handling fee"
+      amount: 15.00
+
+evaluation_criteria:
+  - field: "vendor_name"
+    match_type: "exact"
+    required: true
+
+  - field: "invoice_number"
+    match_type: "contains"
+    required: true
+
+  - field: "total_amount"
+    match_type: "numeric"
+    tolerance: 0.01
+    required: true
+
+  - field: "due_date"
+    match_type: "exact"
+    required: false
+    note: "Should be null when not present"
+
+expected_confidence: 0.85
+expected_latency_ms: 2000
+notes: |
+  This test validates proper handling of missing fields.
+  The prompt should return null for due_date rather than inventing a value.

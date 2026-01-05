@@ -1,0 +1,124 @@
+# Test Case: Standard Auto Insurance Claim
+# Category: Happy Path
+# Description: Complete auto claim with all required information
+
+name: "Standard Auto Claim Extraction"
+description: "Complete auto insurance claim form with all fields properly filled"
+prompt_file: "insurance/claims-document-extraction.md"
+category: "happy-path"
+tags:
+  - "auto-claim"
+  - "fnol"
+  - "complete-data"
+  - "happy-path"
+
+input:
+  document_text: |
+    FIRST NOTICE OF LOSS - AUTO CLAIM
+
+    Claim Reference: CLM-2024-00892
+    Date Reported: January 18, 2024
+    Date of Loss: January 17, 2024
+    Time of Loss: 3:45 PM
+
+    POLICY INFORMATION
+    Policy Number: AUTO-7823451
+    Policy Holder: Sarah Mitchell
+    Policy Type: Personal Auto - Comprehensive
+
+    INSURED VEHICLE
+    Year: 2022
+    Make: Toyota
+    Model: Camry
+    VIN: 4T1BF1FK5CU512847
+    License Plate: ABC-1234 (TX)
+
+    INCIDENT DETAILS
+    Location: Intersection of Oak Street and Main Avenue, Dallas, TX 75201
+    Description: Insured vehicle was traveling northbound on Oak Street when
+    another vehicle ran a red light and struck the insured vehicle on the
+    passenger side. Insured attempted to brake but collision was unavoidable.
+
+    Weather Conditions: Clear
+    Road Conditions: Dry
+    Police Report: Yes, Report #DPD-2024-01234
+    Injuries: Minor - driver experienced neck pain
+
+    OTHER PARTY INFORMATION
+    Name: James Rodriguez
+    Phone: 555-987-6543
+    Insurance: StateFarm Policy #SF-8834521
+    Vehicle: 2019 Honda Accord, Blue
+    License: XYZ-5678 (TX)
+
+    DAMAGE ASSESSMENT
+    Insured Vehicle Damage: Significant passenger side damage, door caved in,
+    possible frame damage. Vehicle not drivable.
+    Estimated Repair: $8,500 - $12,000
+    Other Vehicle Damage: Front bumper and hood damage
+
+    WITNESSES
+    1. Maria Garcia, 555-111-2222, was at crosswalk
+    2. Tom Wilson, 555-333-4444, was in vehicle behind insured
+
+    SUBMITTED BY
+    Adjuster: Michael Chen
+    Date: January 18, 2024
+
+  claim_type: "auto"
+
+expected_output:
+  claim_id: "CLM-2024-00892"
+  date_of_loss: "2024-01-17"
+  date_reported: "2024-01-18"
+  policy_number: "AUTO-7823451"
+  policy_holder: "Sarah Mitchell"
+  incident_type: "collision"
+  incident_location: "Intersection of Oak Street and Main Avenue, Dallas, TX 75201"
+  vehicle:
+    year: 2022
+    make: "Toyota"
+    model: "Camry"
+    vin: "4T1BF1FK5CU512847"
+  damage_estimate:
+    low: 8500
+    high: 12000
+  injuries_reported: true
+  police_report_number: "DPD-2024-01234"
+  other_party:
+    name: "James Rodriguez"
+    insurance_company: "StateFarm"
+    policy_number: "SF-8834521"
+  witnesses_count: 2
+
+evaluation_criteria:
+  - field: "claim_id"
+    match_type: "exact"
+    required: true
+
+  - field: "date_of_loss"
+    match_type: "exact"
+    required: true
+
+  - field: "policy_number"
+    match_type: "exact"
+    required: true
+
+  - field: "policy_holder"
+    match_type: "exact"
+    required: true
+
+  - field: "vehicle.vin"
+    match_type: "exact"
+    required: true
+
+  - field: "injuries_reported"
+    match_type: "exact"
+    required: true
+
+  - field: "police_report_number"
+    match_type: "contains"
+    required: false
+
+expected_confidence: 0.95
+expected_latency_ms: 3000

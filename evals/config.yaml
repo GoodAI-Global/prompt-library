@@ -1,0 +1,93 @@
+# Evaluation Configuration
+# =========================
+
+# Default model for evaluations
+default_model: "claude-sonnet-4-20250514"
+
+# Available models for testing
+models:
+  - id: "claude-sonnet-4-20250514"
+    name: "Claude Sonnet 4"
+    tier: "balanced"
+    pricing:
+      input_per_1m: 3.0
+      output_per_1m: 15.0
+
+  - id: "claude-opus-4-20250514"
+    name: "Claude Opus 4"
+    tier: "premium"
+    pricing:
+      input_per_1m: 15.0
+      output_per_1m: 75.0
+
+  - id: "claude-haiku-3-5-20241022"
+    name: "Claude Haiku 3.5"
+    tier: "fast"
+    pricing:
+      input_per_1m: 0.25
+      output_per_1m: 1.25
+
+# Evaluation settings
+evaluation:
+  temperature: 0
+  max_tokens: 4096
+  timeout_seconds: 30
+  retry_attempts: 2
+  retry_delay_seconds: 1
+
+# Accuracy thresholds
+thresholds:
+  pass:
+    field_accuracy: 95
+    json_validity: 100
+  warn:
+    field_accuracy: 85
+    json_validity: 95
+  fail:
+    field_accuracy: 0
+    json_validity: 0
+
+# Performance targets
+performance:
+  latency_p50_ms: 2000
+  latency_p95_ms: 5000
+  latency_p99_ms: 10000
+
+# Cost budgets (USD per 1000 requests)
+cost_budget:
+  operations: 5.00
+  insurance: 7.50
+  manufacturing: 7.50
+  analysis: 5.00
+
+# Test case categories
+categories:
+  - name: "happy-path"
+    description: "Clean, complete inputs that should always pass"
+    weight: 1.0
+
+  - name: "edge-case"
+    description: "Unusual but valid inputs"
+    weight: 0.8
+
+  - name: "adversarial"
+    description: "Challenging or malformed inputs"
+    weight: 0.5
+
+  - name: "scale"
+    description: "Very long or short inputs"
+    weight: 0.7
+
+# Reporting
+reporting:
+  output_format: "json"
+  include_raw_output: false
+  include_timing_breakdown: true
+  save_failed_cases: true
+
+# CI/CD integration
+ci:
+  fail_on_regression: true
+  regression_threshold: 2.0  # Percentage points
+  notify_on_failure: true
+  artifact_retention_days: 30
