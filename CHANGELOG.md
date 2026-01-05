@@ -31,11 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `evals/metrics/` - Accuracy, latency, and cost metric modules
 - `evals/test-cases/` - Golden test cases for regression testing
 
-#### Templates (New)
-- `templates/tool-use.md` - Function calling patterns (coming soon)
-- `templates/multi-step-agent.md` - Task decomposition patterns (coming soon)
-- `templates/human-in-the-loop.md` - Approval workflow patterns (coming soon)
-- `templates/retrieval-augmented.md` - RAG patterns (coming soon)
+#### Agentic & RAG Templates (New)
+- `templates/tool-use.md` - Function calling and tool use patterns
+- `templates/multi-step-agent.md` - Task decomposition with checkpoints
+- `templates/human-in-the-loop.md` - Approval workflow patterns with audit trails
+- `templates/retrieval-augmented.md` - RAG patterns with source attribution
 
 #### Infrastructure
 - `.gitignore` - Python, IDE, and secret file exclusions
@@ -97,7 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.1.0 | 2025-01-05 | Healthcare vertical, evaluation framework |
+| 1.1.0 | 2025-01-05 | Healthcare vertical, evaluation framework, agentic templates |
 | 1.0.0 | 2025-01-05 | Initial release with 16 prompts |
 
 ---

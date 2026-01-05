@@ -26,19 +26,57 @@ except ImportError:
 try:
     from rich.console import Console
     from rich.table import Table
-    from rich.progress import Progress, SpinnerColumn, TextColumn
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
 
+# Import metrics module
+from metrics import (
+    calculate_cost as metrics_calculate_cost,
+    calculate_latency_stats,
+    check_latency_thresholds,
+    json_validity,
+    field_accuracy,
+)
 
-# Configuration
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
-DEFAULT_TEMPERATURE = 0
-DEFAULT_MAX_TOKENS = 4096
+
+# Paths
 EVALS_DIR = Path(__file__).parent
 PROJECT_ROOT = EVALS_DIR.parent
 TEST_CASES_DIR = EVALS_DIR / "test-cases"
+CONFIG_FILE = EVALS_DIR / "config.yaml"
+
+
+def load_config() -> dict:
+    """Load configuration from config.yaml."""
+    if CONFIG_FILE.exists():
+        with open(CONFIG_FILE) as f:
+            return yaml.safe_load(f)
+    return {}
+
+
+# Load configuration
+CONFIG = load_config()
+
+# Configuration with fallbacks to config.yaml or defaults
+DEFAULT_MODEL = CONFIG.get("default_model", "claude-sonnet-4-20250514")
+DEFAULT_TEMPERATURE = CONFIG.get("evaluation", {}).get("temperature", 0)
+DEFAULT_MAX_TOKENS = CONFIG.get("evaluation", {}).get("max_tokens", 4096)
+TIMEOUT_SECONDS = CONFIG.get("evaluation", {}).get("timeout_seconds", 30)
+RETRY_ATTEMPTS = CONFIG.get("evaluation", {}).get("retry_attempts", 2)
+
+# Thresholds from config
+THRESHOLDS = CONFIG.get("thresholds", {
+    "pass": {"field_accuracy": 95, "json_validity": 100},
+    "warn": {"field_accuracy": 85, "json_validity": 95}
+})
+
+# Performance targets from config
+PERFORMANCE_TARGETS = CONFIG.get("performance", {
+    "latency_p50_ms": 2000,
+    "latency_p95_ms": 5000,
+    "latency_p99_ms": 10000
+})
 
 
 @dataclass
@@ -72,6 +110,9 @@ class EvalReport:
     json_validity: float = 0
     avg_latency_ms: float = 0
     avg_cost_usd: float = 0
+    total_cost_usd: float = 0
+    latency_stats: dict = field(default_factory=dict)
+    latency_check: dict = field(default_factory=dict)
     results: list = field(default_factory=list)
 
 
@@ -176,19 +217,9 @@ def parse_json_output(output: str) -> Optional[dict]:
 
 
 def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
-    """Calculate API cost in USD."""
-    # Pricing per 1M tokens (as of 2024)
-    pricing = {
-        "claude-sonnet-4-20250514": {"input": 3.0, "output": 15.0},
-        "claude-opus-4-20250514": {"input": 15.0, "output": 75.0},
-        "claude-haiku-3-5-20241022": {"input": 0.25, "output": 1.25},
-    }
-
-    model_pricing = pricing.get(model, {"input": 3.0, "output": 15.0})
-    input_cost = (input_tokens / 1_000_000) * model_pricing["input"]
-    output_cost = (output_tokens / 1_000_000) * model_pricing["output"]
-
-    return input_cost + output_cost
+    """Calculate API cost in USD using the metrics module."""
+    cost_result = metrics_calculate_cost(input_tokens, output_tokens, model)
+    return cost_result["total_cost_usd"]
 
 
 def evaluate_field(
@@ -358,7 +389,7 @@ def generate_report(results: list[EvalResult], model: str, prompt_name: str) -> 
     valid_json = 0
     total_fields = 0
     correct_fields = 0
-    total_latency = 0
+    latencies = []
     total_cost = 0
 
     for result in results:
@@ -377,16 +408,29 @@ def generate_report(results: list[EvalResult], model: str, prompt_name: str) -> 
             if field_result["passed"]:
                 correct_fields += 1
 
-        total_latency += result.latency_ms
+        latencies.append(result.latency_ms)
         total_cost += result.cost_usd
 
     if report.total_cases > 0:
         report.json_validity = (valid_json / report.total_cases) * 100
-        report.avg_latency_ms = total_latency / report.total_cases
         report.avg_cost_usd = total_cost / report.total_cases
+        report.total_cost_usd = total_cost
 
     if total_fields > 0:
         report.field_accuracy = (correct_fields / total_fields) * 100
+
+    # Use metrics module for latency statistics
+    if latencies:
+        report.latency_stats = calculate_latency_stats(latencies)
+        report.avg_latency_ms = report.latency_stats.get("mean", 0)
+
+        # Check against performance targets from config
+        latency_thresholds = {
+            "p50": PERFORMANCE_TARGETS.get("latency_p50_ms", 2000),
+            "p95": PERFORMANCE_TARGETS.get("latency_p95_ms", 5000),
+            "p99": PERFORMANCE_TARGETS.get("latency_p99_ms", 10000),
+        }
+        report.latency_check = check_latency_thresholds(latencies, latency_thresholds)
 
     return report
 
@@ -435,8 +479,22 @@ def print_report(report: EvalReport):
         console.print("\n[bold]Metrics:[/bold]")
         console.print(f"  Field Accuracy: {report.field_accuracy:.1f}%")
         console.print(f"  JSON Validity: {report.json_validity:.1f}%")
-        console.print(f"  Avg Latency: {report.avg_latency_ms:.0f}ms")
-        console.print(f"  Avg Cost: ${report.avg_cost_usd:.4f}")
+        console.print(f"  Total Cost: ${report.total_cost_usd:.4f}")
+        console.print(f"  Avg Cost/Request: ${report.avg_cost_usd:.4f}")
+
+        # Latency stats from metrics module
+        if report.latency_stats:
+            console.print("\n[bold]Latency:[/bold]")
+            stats = report.latency_stats
+            console.print(f"  Mean: {stats.get('mean', 0):.0f}ms")
+            console.print(f"  P50: {stats.get('p50', 0):.0f}ms")
+            console.print(f"  P95: {stats.get('p95', 0):.0f}ms")
+            console.print(f"  P99: {stats.get('p99', 0):.0f}ms")
+
+            # Show latency threshold check
+            if report.latency_check:
+                status = "[green]PASSED[/green]" if report.latency_check.get("passed") else "[red]FAILED[/red]"
+                console.print(f"  Performance Check: {status}")
 
         # Failures
         if report.failed > 0:
@@ -477,8 +535,19 @@ def print_report(report: EvalReport):
         print(f"\nMetrics:")
         print(f"  Field Accuracy: {report.field_accuracy:.1f}%")
         print(f"  JSON Validity: {report.json_validity:.1f}%")
-        print(f"  Avg Latency: {report.avg_latency_ms:.0f}ms")
-        print(f"  Avg Cost: ${report.avg_cost_usd:.4f}")
+        print(f"  Total Cost: ${report.total_cost_usd:.4f}")
+        print(f"  Avg Cost/Request: ${report.avg_cost_usd:.4f}")
+
+        if report.latency_stats:
+            print(f"\nLatency:")
+            stats = report.latency_stats
+            print(f"  Mean: {stats.get('mean', 0):.0f}ms")
+            print(f"  P50: {stats.get('p50', 0):.0f}ms")
+            print(f"  P95: {stats.get('p95', 0):.0f}ms")
+            print(f"  P99: {stats.get('p99', 0):.0f}ms")
+            if report.latency_check:
+                status = "PASSED" if report.latency_check.get("passed") else "FAILED"
+                print(f"  Performance Check: {status}")
 
         print("\n" + "=" * 80)
 

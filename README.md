@@ -53,6 +53,19 @@ This isn't a collection of experiments. Every prompt here has been:
 | [Human-in-the-Loop](./templates/human-in-the-loop.md) | Approval workflows and oversight |
 | [Retrieval-Augmented](./templates/retrieval-augmented.md) | Document-grounded responses (RAG) |
 
+### Combining Templates with Domain Prompts
+
+Templates are designed to be **layered on top of** domain-specific prompts:
+
+| Domain Prompt | Recommended Templates |
+|---------------|----------------------|
+| Document extraction prompts | [Structured Output](./templates/structured-output.md) + [Error Handling](./templates/error-handling.md) |
+| Clinical/medical prompts | [Chain of Thought](./templates/chain-of-thought.md) + [Human-in-the-Loop](./templates/human-in-the-loop.md) |
+| Analysis prompts | [Chain of Thought](./templates/chain-of-thought.md) + [Few-Shot Learning](./templates/few-shot-learning.md) |
+| High-volume processing | [Structured Output](./templates/structured-output.md) + [Error Handling](./templates/error-handling.md) |
+| Agentic workflows | [Tool Use](./templates/tool-use.md) + [Multi-Step Agent](./templates/multi-step-agent.md) |
+| Knowledge-grounded tasks | [Retrieval-Augmented](./templates/retrieval-augmented.md) + [Structured Output](./templates/structured-output.md) |
+
 ---
 
 ## Directory Structure

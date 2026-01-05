@@ -28,7 +28,7 @@ input:
     Total: $157.50
 
   document_type: "invoice"
-  extraction_fields:
+  target_fields:
     - vendor_name
     - invoice_number
     - invoice_date
