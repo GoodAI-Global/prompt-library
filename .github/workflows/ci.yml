@@ -1,18 +1,51 @@
-# CI Pipeline - Lint, Test, Validate
-# Runs on every push and pull request
-# No API keys required - all tests are deterministic
-
 name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
-  lint:
-    name: Lint
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint with ruff
+        run: ruff check evals/
+
+      - name: Check formatting with black
+        run: black --check evals/
+
+      - name: Type check with mypy
+        run: mypy evals/ --ignore-missing-imports
+        continue-on-error: true  # Remove once types are fully annotated
+
+      - name: Run tests with pytest
+        run: pytest evals/tests/ --cov=evals --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,42 +53,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff yamllint
-
-      - name: Lint Python files
-        run: ruff check evals/
+          pip install pyyaml yamllint
 
       - name: Lint YAML files
         run: yamllint -d relaxed evals/config.yaml evals/test-cases/
-
-  validate:
-    name: Validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
-
-      - name: Validate Python syntax
-        run: |
-          python -m py_compile evals/run_evals.py
-          python -m py_compile evals/metrics/__init__.py
-          python -m py_compile evals/metrics/accuracy.py
-          python -m py_compile evals/metrics/latency.py
-          python -m py_compile evals/metrics/cost.py
 
       - name: Validate YAML syntax
         run: |
@@ -108,31 +114,7 @@ jobs:
           print('All prompts have required sections')
           "
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml pytest
-
-      - name: Run unit tests
-        run: pytest evals/tests/ -v
-
-      - name: Dry run evaluation framework
-        run: |
-          cd evals && python run_evals.py --dry-run
-
   security:
-    name: Security Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -153,31 +135,26 @@ jobs:
 
           echo "No secrets detected"
 
-      - name: Validate safe example data
-        run: |
-          python -c "
-          import re
-          import sys
-          from pathlib import Path
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, validate]
 
-          issues = []
+    steps:
+      - uses: actions/checkout@v4
 
-          # Check for potentially real emails (not @example.com variants)
-          suspicious_email = re.compile(r'[a-zA-Z0-9._%+-]+@(?!example\.|email\.|test\.|good\.ai)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-          for f in Path('.').rglob('*.md'):
-              content = f.read_text()
-              matches = suspicious_email.findall(content)
-              if matches:
-                  # Filter out common safe patterns
-                  real_matches = [m for m in matches if not any(safe in m for safe in ['@techcorp.com', '@email.com'])]
-                  if real_matches:
-                      issues.append(f'{f}: Suspicious emails: {real_matches[:3]}')
+      - name: Install build tools
+        run: pip install build
 
-          if issues:
-              print('WARNING: Review these potential real emails:')
-              for i in issues[:5]:
-                  print(f'  {i}')
-              # Warning only, don't fail
-          print('Security check complete')
-          "
+      - name: Build package
+        run: python -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

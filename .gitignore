@@ -1,8 +1,12 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -20,12 +24,48 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Environments
 .env
+.env.*
 .venv
 env/
 venv/
 ENV/
+env.bak/
+venv.bak/
+
+# Secrets
+*.pem
+*.key
+secrets.yaml
+secrets.json
+credentials.json
 
 # IDE
 .idea/
@@ -33,26 +73,27 @@ ENV/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Evaluation outputs
-evals/results/
-evals/*.json
-!evals/config.yaml
+# ruff
+.ruff_cache/
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
-# Secrets (never commit these)
-.env.local
-.env.*.local
-*.pem
-*.key
-credentials.json
+# Jupyter
+.ipynb_checkpoints/
+
+# Evaluation outputs
+evals/results/
+evals/reports/
+*.log

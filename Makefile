@@ -1,7 +1,7 @@
 # Makefile for Enterprise Prompt Library
 # Usage: make <target>
 
-.PHONY: help setup lint test clean validate all
+.PHONY: help setup lint format test clean validate all build
 
 # Default target
 help:
@@ -11,9 +11,11 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  setup      Install development dependencies"
-	@echo "  lint       Run linters (ruff, yamllint)"
-	@echo "  test       Run all tests"
+	@echo "  lint       Run linters (ruff, black --check)"
+	@echo "  format     Format code with black"
+	@echo "  test       Run all tests with coverage"
 	@echo "  validate   Validate prompt structure and syntax"
+	@echo "  build      Build distribution package"
 	@echo "  clean      Remove generated files"
 	@echo "  all        Run lint, validate, and test"
 	@echo ""
@@ -25,21 +27,29 @@ help:
 # Install dependencies
 setup:
 	python -m pip install --upgrade pip
-	pip install pyyaml ruff yamllint pytest rich anthropic
-	@echo "Setup complete. Set ANTHROPIC_API_KEY to run evaluations."
+	pip install -e ".[dev]"
+	@echo "Setup complete. Run 'pip install -e .[eval]' for evaluation dependencies."
 
 # Linting
 lint:
-	@echo "Running Python linter..."
+	@echo "Running ruff..."
 	ruff check evals/
-	@echo "Running YAML linter..."
+	@echo "Checking black formatting..."
+	black --check evals/
+	@echo "Running yamllint..."
 	yamllint -d relaxed evals/config.yaml evals/test-cases/
 	@echo "Lint complete."
 
+# Format code
+format:
+	@echo "Formatting with black..."
+	black evals/
+	@echo "Format complete."
+
 # Testing
 test:
-	@echo "Running unit tests..."
-	pytest evals/tests/ -v
+	@echo "Running tests with coverage..."
+	pytest evals/tests/ -v --cov=evals --cov-report=term-missing
 	@echo "Tests complete."
 
 # Validation
@@ -62,6 +72,13 @@ validate:
 	 if any(s not in f.read_text() for s in sections)] or print('All prompts valid')"
 	@echo "Validation complete."
 
+# Build package
+build:
+	@echo "Building package..."
+	pip install build
+	python -m build
+	@echo "Build complete. Artifacts in dist/"
+
 # Dry run evaluation (no API key needed)
 eval-dry:
 	cd evals && python run_evals.py --dry-run
@@ -80,6 +97,9 @@ clean:
 	find . -type f -name ".DS_Store" -delete 2>/dev/null || true
 	rm -rf .pytest_cache/ 2>/dev/null || true
 	rm -rf .ruff_cache/ 2>/dev/null || true
+	rm -rf .mypy_cache/ 2>/dev/null || true
+	rm -rf build/ dist/ *.egg-info/ 2>/dev/null || true
+	rm -rf .coverage coverage.xml htmlcov/ 2>/dev/null || true
 	@echo "Clean complete."
 
 # Run all checks

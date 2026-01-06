@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goodai-prompt-library"
+version = "0.1.0"
+description = "Enterprise prompt templates for AI applications"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Good AI", email = "contact@wearegoodai.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = ["ai", "llm", "prompts", "enterprise", "claude", "anthropic"]
+
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1",
+    "mypy>=1.0",
+    "yamllint>=1.32",
+    "build>=1.0",
+    "twine>=4.0",
+]
+eval = [
+    "anthropic>=0.18.0",
+    "rich>=13.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/GoodAI-Global/prompt-library"
+Documentation = "https://github.com/GoodAI-Global/prompt-library#readme"
+Repository = "https://github.com/GoodAI-Global/prompt-library"
+Issues = "https://github.com/GoodAI-Global/prompt-library/issues"
+Changelog = "https://github.com/GoodAI-Global/prompt-library/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["evals*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["evals/tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  __pycache__
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]  # Line length handled by black
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["evals"]
+omit = ["evals/tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
