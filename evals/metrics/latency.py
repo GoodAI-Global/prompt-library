@@ -29,7 +29,7 @@ def calculate_latency_stats(latencies: list[float]) -> dict:
             "p90": 0,
             "p95": 0,
             "p99": 0,
-            "std_dev": 0
+            "std_dev": 0,
         }
 
     sorted_latencies = sorted(latencies)
@@ -42,7 +42,9 @@ def calculate_latency_stats(latencies: list[float]) -> dict:
         k = (n - 1) * (p / 100)
         f = int(k)
         c = f + 1 if f + 1 < n else f
-        return sorted_latencies[f] + (k - f) * (sorted_latencies[c] - sorted_latencies[f])
+        return sorted_latencies[f] + (k - f) * (
+            sorted_latencies[c] - sorted_latencies[f]
+        )
 
     return {
         "count": n,
@@ -54,13 +56,12 @@ def calculate_latency_stats(latencies: list[float]) -> dict:
         "p90": percentile(90),
         "p95": percentile(95),
         "p99": percentile(99),
-        "std_dev": statistics.stdev(latencies) if n > 1 else 0
+        "std_dev": statistics.stdev(latencies) if n > 1 else 0,
     }
 
 
 def check_latency_thresholds(
-    latencies: list[float],
-    thresholds: Optional[dict] = None
+    latencies: list[float], thresholds: Optional[dict] = None
 ) -> dict:
     """
     Check if latencies meet specified thresholds.
@@ -74,18 +75,15 @@ def check_latency_thresholds(
     """
     if thresholds is None:
         thresholds = {
-            "p50": 2000,   # 2 seconds
-            "p90": 4000,   # 4 seconds
-            "p95": 5000,   # 5 seconds
-            "p99": 10000   # 10 seconds
+            "p50": 2000,  # 2 seconds
+            "p90": 4000,  # 4 seconds
+            "p95": 5000,  # 5 seconds
+            "p99": 10000,  # 10 seconds
         }
 
     stats = calculate_latency_stats(latencies)
 
-    results = {
-        "passed": True,
-        "details": {}
-    }
+    results = {"passed": True, "details": {}}
 
     for metric, threshold in thresholds.items():
         actual = stats.get(metric, 0)
@@ -95,7 +93,7 @@ def check_latency_thresholds(
             "threshold": threshold,
             "actual": actual,
             "passed": passed,
-            "margin": threshold - actual
+            "margin": threshold - actual,
         }
 
         if not passed:
@@ -123,8 +121,7 @@ def format_latency(ms: float) -> str:
 
 
 def detect_latency_anomalies(
-    latencies: list[float],
-    threshold_std: float = 2.0
+    latencies: list[float], threshold_std: float = 2.0
 ) -> list[dict]:
     """
     Detect anomalous latency values.
@@ -147,11 +144,13 @@ def detect_latency_anomalies(
         z_score = (latency - mean) / std if std > 0 else 0
 
         if abs(z_score) > threshold_std:
-            anomalies.append({
-                "index": i,
-                "value": latency,
-                "z_score": z_score,
-                "type": "slow" if z_score > 0 else "fast"
-            })
+            anomalies.append(
+                {
+                    "index": i,
+                    "value": latency,
+                    "z_score": z_score,
+                    "type": "slow" if z_score > 0 else "fast",
+                }
+            )
 
     return anomalies

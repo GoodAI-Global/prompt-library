@@ -6,28 +6,23 @@ Provides cost calculation and estimation functions for LLM API usage.
 
 from typing import Optional
 
-
 # Pricing per 1 million tokens (USD) - Updated January 2025
 MODEL_PRICING = {
     # Anthropic Claude models
     "claude-opus-4-20250514": {"input": 15.0, "output": 75.0},
     "claude-sonnet-4-20250514": {"input": 3.0, "output": 15.0},
     "claude-haiku-3-5-20241022": {"input": 0.25, "output": 1.25},
-
     # OpenAI models (for comparison)
     "gpt-4o": {"input": 2.50, "output": 10.0},
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4-turbo": {"input": 10.0, "output": 30.0},
-
     # Default fallback
-    "default": {"input": 3.0, "output": 15.0}
+    "default": {"input": 3.0, "output": 15.0},
 }
 
 
 def calculate_cost(
-    input_tokens: int,
-    output_tokens: int,
-    model: str = "default"
+    input_tokens: int, output_tokens: int, model: str = "default"
 ) -> dict:
     """
     Calculate cost for a single API call.
@@ -54,7 +49,7 @@ def calculate_cost(
         "output_cost_usd": output_cost,
         "total_cost_usd": total_cost,
         "model": model,
-        "pricing": pricing
+        "pricing": pricing,
     }
 
 
@@ -62,7 +57,7 @@ def estimate_monthly_cost(
     avg_input_tokens: int,
     avg_output_tokens: int,
     requests_per_day: int,
-    model: str = "default"
+    model: str = "default",
 ) -> dict:
     """
     Estimate monthly cost based on usage patterns.
@@ -92,14 +87,12 @@ def estimate_monthly_cost(
         "monthly_cost_usd": monthly_cost["total_cost_usd"],
         "monthly_input_tokens": monthly_input_tokens,
         "monthly_output_tokens": monthly_output_tokens,
-        "model": model
+        "model": model,
     }
 
 
 def compare_model_costs(
-    input_tokens: int,
-    output_tokens: int,
-    models: Optional[list[str]] = None
+    input_tokens: int, output_tokens: int, models: Optional[list[str]] = None
 ) -> list[dict]:
     """
     Compare costs across different models.
@@ -119,13 +112,15 @@ def compare_model_costs(
     comparisons = []
     for model in models:
         cost = calculate_cost(input_tokens, output_tokens, model)
-        comparisons.append({
-            "model": model,
-            "total_cost_usd": cost["total_cost_usd"],
-            "input_cost_usd": cost["input_cost_usd"],
-            "output_cost_usd": cost["output_cost_usd"],
-            "pricing": cost["pricing"]
-        })
+        comparisons.append(
+            {
+                "model": model,
+                "total_cost_usd": cost["total_cost_usd"],
+                "input_cost_usd": cost["input_cost_usd"],
+                "output_cost_usd": cost["output_cost_usd"],
+                "pricing": cost["pricing"],
+            }
+        )
 
     # Sort by total cost
     comparisons.sort(key=lambda x: x["total_cost_usd"])
@@ -135,17 +130,13 @@ def compare_model_costs(
         cheapest = comparisons[0]["total_cost_usd"]
         for comp in comparisons:
             comp["relative_cost"] = (
-                comp["total_cost_usd"] / cheapest
-                if cheapest > 0 else 1.0
+                comp["total_cost_usd"] / cheapest if cheapest > 0 else 1.0
             )
 
     return comparisons
 
 
-def calculate_batch_cost(
-    requests: list[dict],
-    model: str = "default"
-) -> dict:
+def calculate_batch_cost(requests: list[dict], model: str = "default") -> dict:
     """
     Calculate total cost for a batch of requests.
 
@@ -167,10 +158,9 @@ def calculate_batch_cost(
         "total_output_tokens": total_output,
         "total_cost_usd": batch_cost["total_cost_usd"],
         "avg_cost_per_request": (
-            batch_cost["total_cost_usd"] / len(requests)
-            if requests else 0
+            batch_cost["total_cost_usd"] / len(requests) if requests else 0
         ),
-        "model": model
+        "model": model,
     }
 
 

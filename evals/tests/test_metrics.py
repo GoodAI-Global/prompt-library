@@ -3,16 +3,26 @@ Deterministic tests for the metrics module.
 No API keys required - tests core functionality only.
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from metrics.accuracy import exact_match, field_accuracy, json_validity, semantic_similarity
-from metrics.latency import calculate_latency_stats, check_latency_thresholds, format_latency
-from metrics.cost import calculate_cost, estimate_monthly_cost, compare_model_costs
+from metrics.accuracy import (
+    exact_match,
+    field_accuracy,
+    json_validity,
+    semantic_similarity,
+)
+from metrics.cost import calculate_cost, compare_model_costs, estimate_monthly_cost
+from metrics.latency import (
+    calculate_latency_stats,
+    check_latency_thresholds,
+    format_latency,
+)
 
 
 class TestAccuracyMetrics:
@@ -65,7 +75,7 @@ class TestAccuracyMetrics:
         assert result["is_valid"] is True
 
     def test_json_validity_invalid(self):
-        result = json_validity('not valid json')
+        result = json_validity("not valid json")
         assert result["is_valid"] is False
         assert result["error"] is not None
 
@@ -177,7 +187,7 @@ class TestCostMetrics:
             avg_input_tokens=1000,
             avg_output_tokens=500,
             requests_per_day=100,
-            model="claude-sonnet-4-20250514"
+            model="claude-sonnet-4-20250514",
         )
         assert result["requests_per_day"] == 100
         assert result["requests_per_month"] == 3000
@@ -201,11 +211,17 @@ class TestPromptStructure:
             "## Variables",
             "## Examples",
             "## Gotchas",
-            "## Model Recommendations"
+            "## Model Recommendations",
         ]
 
         project_root = Path(__file__).parent.parent.parent
-        categories = ["operations", "insurance", "manufacturing", "healthcare", "analysis"]
+        categories = [
+            "operations",
+            "insurance",
+            "manufacturing",
+            "healthcare",
+            "analysis",
+        ]
 
         errors = []
         for category in categories:
@@ -222,7 +238,13 @@ class TestPromptStructure:
     def test_test_cases_have_required_fields(self):
         import yaml
 
-        required_fields = ["name", "prompt_file", "input", "expected_output", "evaluation_criteria"]
+        required_fields = [
+            "name",
+            "prompt_file",
+            "input",
+            "expected_output",
+            "evaluation_criteria",
+        ]
 
         project_root = Path(__file__).parent.parent
         test_cases_dir = project_root / "test-cases"
@@ -262,4 +284,6 @@ class TestConfigValidation:
         thresholds = config.get("thresholds", {})
         assert "pass" in thresholds
         assert "warn" in thresholds
-        assert thresholds["pass"]["field_accuracy"] >= thresholds["warn"]["field_accuracy"]
+        assert (
+            thresholds["pass"]["field_accuracy"] >= thresholds["warn"]["field_accuracy"]
+        )

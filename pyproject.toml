@@ -76,8 +76,10 @@ extend-exclude = '''
 
 [tool.ruff]
 line-length = 88
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
-ignore = ["E501"]  # Line length handled by black
+ignore = ["E501", "B007"]  # E501: line length (black handles), B007: unused loop var
 
 [tool.mypy]
 python_version = "3.9"

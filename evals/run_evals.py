@@ -26,6 +26,7 @@ except ImportError:
 try:
     from rich.console import Console
     from rich.table import Table
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -33,12 +34,11 @@ except ImportError:
 # Import metrics module
 from metrics import (
     calculate_cost as metrics_calculate_cost,
+)
+from metrics import (
     calculate_latency_stats,
     check_latency_thresholds,
-    json_validity,
-    field_accuracy,
 )
-
 
 # Paths
 EVALS_DIR = Path(__file__).parent
@@ -66,22 +66,25 @@ TIMEOUT_SECONDS = CONFIG.get("evaluation", {}).get("timeout_seconds", 30)
 RETRY_ATTEMPTS = CONFIG.get("evaluation", {}).get("retry_attempts", 2)
 
 # Thresholds from config
-THRESHOLDS = CONFIG.get("thresholds", {
-    "pass": {"field_accuracy": 95, "json_validity": 100},
-    "warn": {"field_accuracy": 85, "json_validity": 95}
-})
+THRESHOLDS = CONFIG.get(
+    "thresholds",
+    {
+        "pass": {"field_accuracy": 95, "json_validity": 100},
+        "warn": {"field_accuracy": 85, "json_validity": 95},
+    },
+)
 
 # Performance targets from config
-PERFORMANCE_TARGETS = CONFIG.get("performance", {
-    "latency_p50_ms": 2000,
-    "latency_p95_ms": 5000,
-    "latency_p99_ms": 10000
-})
+PERFORMANCE_TARGETS = CONFIG.get(
+    "performance",
+    {"latency_p50_ms": 2000, "latency_p95_ms": 5000, "latency_p99_ms": 10000},
+)
 
 
 @dataclass
 class EvalResult:
     """Result of a single test case evaluation."""
+
     test_case: str
     prompt_file: str
     passed: bool
@@ -99,6 +102,7 @@ class EvalResult:
 @dataclass
 class EvalReport:
     """Aggregated evaluation report."""
+
     prompt: str
     model: str
     timestamp: str
@@ -125,11 +129,7 @@ def load_prompt(prompt_file: str) -> str:
     content = prompt_path.read_text()
 
     # Extract prompt between ```  markers in "## The Prompt" section
-    prompt_match = re.search(
-        r'## The Prompt\s*```[^\n]*\n(.*?)```',
-        content,
-        re.DOTALL
-    )
+    prompt_match = re.search(r"## The Prompt\s*```[^\n]*\n(.*?)```", content, re.DOTALL)
 
     if prompt_match:
         return prompt_match.group(1).strip()
@@ -149,16 +149,18 @@ def substitute_variables(prompt: str, variables: dict) -> str:
 
     for key, value in variables.items():
         # Handle both {{var}} and {{#if var}} patterns
-        pattern = r'\{\{' + re.escape(key) + r'\}\}'
+        pattern = r"\{\{" + re.escape(key) + r"\}\}"
         result = re.sub(pattern, str(value), result)
 
     # Remove unfilled optional blocks {{#if ...}} ... {{/if}}
-    result = re.sub(r'\{\{#if\s+\w+\}\}.*?\{\{/if\}\}', '', result, flags=re.DOTALL)
+    result = re.sub(r"\{\{#if\s+\w+\}\}.*?\{\{/if\}\}", "", result, flags=re.DOTALL)
 
     return result
 
 
-def call_llm(prompt: str, model: str, temperature: float = 0) -> tuple[str, float, int, int]:
+def call_llm(
+    prompt: str, model: str, temperature: float = 0
+) -> tuple[str, float, int, int]:
     """
     Call the LLM and return (response, latency_ms, input_tokens, output_tokens).
     """
@@ -176,7 +178,7 @@ def call_llm(prompt: str, model: str, temperature: float = 0) -> tuple[str, floa
         model=model,
         max_tokens=DEFAULT_MAX_TOKENS,
         temperature=temperature,
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
     )
     latency_ms = (time.time() - start_time) * 1000
 
@@ -192,10 +194,10 @@ def parse_json_output(output: str) -> Optional[dict]:
     output = output.strip()
 
     # Remove markdown code blocks
-    if output.startswith('```'):
-        lines = output.split('\n')
-        lines = [line for line in lines if not line.startswith('```')]
-        output = '\n'.join(lines)
+    if output.startswith("```"):
+        lines = output.split("\n")
+        lines = [line for line in lines if not line.startswith("```")]
+        output = "\n".join(lines)
 
     # Try direct parse
     try:
@@ -204,9 +206,9 @@ def parse_json_output(output: str) -> Optional[dict]:
         pass
 
     # Try to find JSON object
-    start = output.find('{')
+    start = output.find("{")
     if start != -1:
-        end = output.rfind('}') + 1
+        end = output.rfind("}") + 1
         if end > start:
             try:
                 return json.loads(output[start:end])
@@ -223,10 +225,7 @@ def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
 
 
 def evaluate_field(
-    actual: Any,
-    expected: Any,
-    match_type: str,
-    tolerance: float = 0.01
+    actual: Any, expected: Any, match_type: str, tolerance: float = 0.01
 ) -> tuple[bool, str]:
     """Evaluate a single field against expected value."""
     if actual is None and expected is not None:
@@ -267,15 +266,11 @@ def evaluate_field(
         return False, f"Unknown match type: {match_type}"
 
 
-def run_test_case(
-    test_case: dict,
-    model: str,
-    temperature: float = 0
-) -> EvalResult:
+def run_test_case(test_case: dict, model: str, temperature: float = 0) -> EvalResult:
     """Run a single test case and return result."""
     result = EvalResult(
         test_case=test_case.get("name", "unknown"),
-        prompt_file=test_case.get("prompt_file", "unknown")
+        prompt_file=test_case.get("prompt_file", "unknown"),
     )
 
     try:
@@ -338,7 +333,7 @@ def run_test_case(
             result.field_results[field_name] = {
                 "passed": passed,
                 "message": message,
-                "required": required
+                "required": required,
             }
 
             if not passed:
@@ -357,7 +352,9 @@ def run_test_case(
     return result
 
 
-def discover_test_cases(category: Optional[str] = None, prompt: Optional[str] = None) -> list[Path]:
+def discover_test_cases(
+    category: Optional[str] = None, prompt: Optional[str] = None
+) -> list[Path]:
     """Discover test case files based on filters."""
     test_cases = []
 
@@ -375,12 +372,12 @@ def discover_test_cases(category: Optional[str] = None, prompt: Optional[str] = 
     return sorted(test_cases)
 
 
-def generate_report(results: list[EvalResult], model: str, prompt_name: str) -> EvalReport:
+def generate_report(
+    results: list[EvalResult], model: str, prompt_name: str
+) -> EvalReport:
     """Generate aggregated report from results."""
     report = EvalReport(
-        prompt=prompt_name,
-        model=model,
-        timestamp=datetime.now().isoformat()
+        prompt=prompt_name, model=model, timestamp=datetime.now().isoformat()
     )
 
     report.total_cases = len(results)
@@ -459,17 +456,17 @@ def print_report(report: EvalReport):
         table.add_row(
             "[green]✅ Passed[/green]",
             str(report.passed),
-            f"{(report.passed / total) * 100:.1f}%"
+            f"{(report.passed / total) * 100:.1f}%",
         )
         table.add_row(
             "[yellow]⚠️ Warnings[/yellow]",
             str(report.warnings),
-            f"{(report.warnings / total) * 100:.1f}%"
+            f"{(report.warnings / total) * 100:.1f}%",
         )
         table.add_row(
             "[red]❌ Failed[/red]",
             str(report.failed),
-            f"{(report.failed / total) * 100:.1f}%"
+            f"{(report.failed / total) * 100:.1f}%",
         )
 
         console.print("\n[bold]Results:[/bold]")
@@ -493,7 +490,11 @@ def print_report(report: EvalReport):
 
             # Show latency threshold check
             if report.latency_check:
-                status = "[green]PASSED[/green]" if report.latency_check.get("passed") else "[red]FAILED[/red]"
+                status = (
+                    "[green]PASSED[/green]"
+                    if report.latency_check.get("passed")
+                    else "[red]FAILED[/red]"
+                )
                 console.print(f"  Performance Check: {status}")
 
         # Failures
@@ -527,19 +528,19 @@ def print_report(report: EvalReport):
         print("-" * 80)
 
         total = report.total_cases or 1
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Passed: {report.passed} ({(report.passed / total) * 100:.1f}%)")
         print(f"  Warnings: {report.warnings} ({(report.warnings / total) * 100:.1f}%)")
         print(f"  Failed: {report.failed} ({(report.failed / total) * 100:.1f}%)")
 
-        print(f"\nMetrics:")
+        print("\nMetrics:")
         print(f"  Field Accuracy: {report.field_accuracy:.1f}%")
         print(f"  JSON Validity: {report.json_validity:.1f}%")
         print(f"  Total Cost: ${report.total_cost_usd:.4f}")
         print(f"  Avg Cost/Request: ${report.avg_cost_usd:.4f}")
 
         if report.latency_stats:
-            print(f"\nLatency:")
+            print("\nLatency:")
             stats = report.latency_stats
             print(f"  Mean: {stats.get('mean', 0):.0f}ms")
             print(f"  P50: {stats.get('p50', 0):.0f}ms")
@@ -554,13 +555,19 @@ def print_report(report: EvalReport):
 
 def main():
     parser = argparse.ArgumentParser(description="Run prompt evaluations")
-    parser.add_argument("--category", help="Filter by category (operations, insurance, etc.)")
+    parser.add_argument(
+        "--category", help="Filter by category (operations, insurance, etc.)"
+    )
     parser.add_argument("--prompt", help="Filter by prompt name")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Model to use")
     parser.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE)
     parser.add_argument("--output", help="Output file for JSON results")
-    parser.add_argument("--fail-under", type=float, help="Fail if accuracy below threshold")
-    parser.add_argument("--dry-run", action="store_true", help="List test cases without running")
+    parser.add_argument(
+        "--fail-under", type=float, help="Fail if accuracy below threshold"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="List test cases without running"
+    )
 
     args = parser.parse_args()
 
@@ -616,7 +623,7 @@ def main():
                 "field_accuracy": report.field_accuracy,
                 "json_validity": report.json_validity,
                 "avg_latency_ms": report.avg_latency_ms,
-                "avg_cost_usd": report.avg_cost_usd
+                "avg_cost_usd": report.avg_cost_usd,
             },
             "results": [
                 {
@@ -625,10 +632,10 @@ def main():
                     "warnings": r.warnings,
                     "errors": r.errors,
                     "latency_ms": r.latency_ms,
-                    "cost_usd": r.cost_usd
+                    "cost_usd": r.cost_usd,
                 }
                 for r in results
-            ]
+            ],
         }
         with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
@@ -636,9 +643,13 @@ def main():
 
     # Check threshold
     if args.fail_under:
-        accuracy = (report.passed / report.total_cases * 100) if report.total_cases > 0 else 0
+        accuracy = (
+            (report.passed / report.total_cases * 100) if report.total_cases > 0 else 0
+        )
         if accuracy < args.fail_under:
-            print(f"\n❌ Accuracy {accuracy:.1f}% is below threshold {args.fail_under}%")
+            print(
+                f"\n❌ Accuracy {accuracy:.1f}% is below threshold {args.fail_under}%"
+            )
             sys.exit(1)
 
     sys.exit(0 if report.failed == 0 else 1)
