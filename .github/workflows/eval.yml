@@ -1,0 +1,84 @@
+name: Evaluation
+
+# Manual trigger only - requires API key
+on:
+  workflow_dispatch:
+    inputs:
+      category:
+        description: "Category to evaluate (leave empty for all)"
+        required: false
+        default: ""
+        type: string
+      model:
+        description: "Model to use"
+        required: false
+        default: "claude-sonnet-4-20250514"
+        type: choice
+        options:
+          - claude-sonnet-4-20250514
+          - claude-opus-4-20250514
+          - claude-haiku-3-5-20241022
+      fail_threshold:
+        description: "Fail if accuracy below this percentage"
+        required: false
+        default: "90"
+        type: string
+
+jobs:
+  evaluate:
+    name: Run Evaluation
+    runs-on: ubuntu-latest
+
+    # This job requires the ANTHROPIC_API_KEY secret
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install anthropic pyyaml rich
+
+      - name: Check API key is set
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ERROR: ANTHROPIC_API_KEY secret is not set"
+            echo "Please add the secret in Settings > Secrets > Actions"
+            exit 1
+          fi
+          echo "API key is configured"
+
+      - name: Run evaluation
+        run: |
+          cd evals
+
+          # Build command
+          CMD="python run_evals.py"
+
+          if [ -n "${{ inputs.category }}" ]; then
+            CMD="$CMD --category ${{ inputs.category }}"
+          fi
+
+          CMD="$CMD --model ${{ inputs.model }}"
+
+          if [ -n "${{ inputs.fail_threshold }}" ]; then
+            CMD="$CMD --fail-under ${{ inputs.fail_threshold }}"
+          fi
+
+          echo "Running: $CMD"
+          $CMD
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ github.run_id }}
+          path: evals/results/
+          if-no-files-found: ignore

@@ -62,7 +62,7 @@ grep -o '{{[^}]*}}' operations/document-data-extraction.md
 
 ```bash
 make setup      # Install dependencies
-make validate   # Check syntax
+make validate   # Check syntax (no API key needed)
 make test       # Run unit tests
 ```
 
@@ -134,28 +134,47 @@ See [PRINCIPLES.md](./PRINCIPLES.md) for design philosophy.
 make setup   # Install Python dependencies
 ```
 
+### Offline Validation vs Real Evaluation
+
+This library separates **offline validation** (no API key) from **real evaluation** (requires API key):
+
+| Command | API Key | What It Does |
+|---------|---------|--------------|
+| `make validate` | ❌ Not needed | Validates prompt structure, YAML syntax, test cases |
+| `make test` | ❌ Not needed | Runs unit tests for validator and eval framework |
+| `make lint` | ❌ Not needed | Checks code style (ruff, black, yamllint) |
+| `make eval` | ✅ Required | Runs prompts against Claude API |
+
+**CI/CD runs offline validation automatically on every PR** - no secrets required.
+
+**Real evaluation** is triggered manually via GitHub Actions when you need to test prompt quality.
+
 ### Commands
 
 ```bash
+# Offline (no API key required)
 make lint      # Run linters
-make validate  # Check syntax
+make validate  # Validate prompt structure
 make test      # Run unit tests
-make eval-dry  # Dry run evaluation (no API key)
-make eval      # Run evaluation (requires ANTHROPIC_API_KEY)
-make clean     # Remove generated files
+make all       # Run lint + validate + test
+
+# Online (requires ANTHROPIC_API_KEY)
+make eval-dry  # Dry run - list test cases
+make eval      # Run full evaluation
 ```
 
-### Evaluation Framework
+### Running Evaluation
 
 ```bash
-cd evals
-
-# List test cases
-python run_evals.py --dry-run
-
-# Run with API key
+# Set API key
 export ANTHROPIC_API_KEY="your-key"
-python run_evals.py --category operations
+
+# Run evaluation
+make eval
+
+# Or run directly
+cd evals
+python run_evals.py --category operations --model claude-sonnet-4-20250514
 ```
 
 See [evals/README.md](./evals/README.md) for details.
