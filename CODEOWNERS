@@ -1,0 +1,25 @@
+# CODEOWNERS - Define code ownership for review requirements
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+*       @GoodAI-Global/prompt-library-maintainers
+
+# Prompt files by category
+/operations/    @GoodAI-Global/prompt-library-maintainers
+/insurance/     @GoodAI-Global/prompt-library-maintainers
+/manufacturing/ @GoodAI-Global/prompt-library-maintainers
+/healthcare/    @GoodAI-Global/prompt-library-maintainers
+/analysis/      @GoodAI-Global/prompt-library-maintainers
+/templates/     @GoodAI-Global/prompt-library-maintainers
+
+# Evaluation framework
+/evals/         @GoodAI-Global/prompt-library-maintainers
+
+# Infrastructure and CI
+/.github/       @GoodAI-Global/prompt-library-maintainers
+Makefile        @GoodAI-Global/prompt-library-maintainers
+
+# Documentation
+README.md       @GoodAI-Global/prompt-library-maintainers
+CONTRIBUTING.md @GoodAI-Global/prompt-library-maintainers
+CHANGELOG.md    @GoodAI-Global/prompt-library-maintainers

@@ -11,132 +11,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Financial Services vertical (KYC, regulatory reporting, trade surveillance)
 - Legal vertical (contract analysis, due diligence, clause extraction)
 - Multi-modal prompt patterns (document + image analysis)
+- Additional test cases for all prompts
 
 ---
 
-## [1.1.0] - 2025-01-05
+## [0.1.0] - 2025-01-06
+
+First tagged release. Establishes baseline with CI/CD infrastructure.
 
 ### Added
 
-#### Healthcare Vertical (New)
-- `healthcare/clinical-notes-summarization.md` - Physician handoff and discharge summaries
-- `healthcare/prior-authorization-extraction.md` - Prior auth form processing
-- `healthcare/medical-coding-assistance.md` - ICD-10/CPT coding support
-- `healthcare/patient-intake-extraction.md` - Patient registration form extraction
+#### Prompt Templates (20 total)
+- **Healthcare** (4): Clinical notes, prior auth, medical coding, patient intake
+- **Insurance** (4): Claims extraction, policy comparison, fraud detection, underwriting
+- **Manufacturing** (4): Quality inspection, maintenance logs, anomaly explanation, failure prediction
+- **Operations** (4): Document extraction, email routing, meeting notes, report generation
+- **Analysis** (4): Data quality, anomaly explanation, trend interpretation, root cause
 
-#### Evaluation Framework (New)
-- `evals/README.md` - Comprehensive evaluation documentation
-- `evals/run_evals.py` - Automated test runner with accuracy/latency/cost metrics
-- `evals/config.yaml` - Evaluation configuration
-- `evals/metrics/` - Accuracy, latency, and cost metric modules
-- `evals/test-cases/` - Golden test cases for regression testing
+#### Prompt Engineering Patterns (8 total)
+- Core: Structured output, few-shot learning, chain-of-thought, error handling
+- Agentic: Tool use, multi-step agent, human-in-the-loop, retrieval-augmented
 
-#### Agentic & RAG Templates (New)
-- `templates/tool-use.md` - Function calling and tool use patterns
-- `templates/multi-step-agent.md` - Task decomposition with checkpoints
-- `templates/human-in-the-loop.md` - Approval workflow patterns with audit trails
-- `templates/retrieval-augmented.md` - RAG patterns with source attribution
+#### Evaluation Framework
+- `evals/run_evals.py` - Test runner with accuracy, latency, cost metrics
+- `evals/metrics/` - Modular metrics (accuracy, latency, cost)
+- `evals/test-cases/` - Golden test cases (3 initial)
+- `evals/tests/` - Deterministic unit tests (no API key required)
+- `evals/config.yaml` - Configuration for thresholds and models
 
-#### Infrastructure
-- `.gitignore` - Python, IDE, and secret file exclusions
-- `CHANGELOG.md` - This file
+#### Infrastructure (MVEGS Compliance)
+- `.github/workflows/ci.yml` - Lint, validate, test (no secrets required)
+- `.github/dependabot.yml` - Automated dependency updates
+- `Makefile` - Standard development commands
+- `SECURITY.md` - Security policy and vulnerability reporting
+- `CODE_OF_CONDUCT.md` - Contributor Covenant
+- `CODEOWNERS` - Code ownership for reviews
 - `CONTRIBUTING.md` - Contribution guidelines
+- `RELEASING.md` - Release process documentation
 
-### Changed
-- Updated `README.md` with Testing & Evaluation section
-- Updated directory structure to include new verticals
-- Added Healthcare to industry navigation
-
-### Fixed
-- Added missing `import json` to error-handling.md Python example
+#### Documentation
+- `README.md` - Truthful overview with "What it is / What it isn't"
+- `PRINCIPLES.md` - Prompt engineering principles
+- `CHANGELOG.md` - This file
 
 ---
 
-## [1.0.0] - 2025-01-05
-
-### Added
-
-#### Core Documentation
-- `README.md` - Main documentation with navigation and getting started guide
-- `PRINCIPLES.md` - 10 production-tested prompt engineering principles
-- `LICENSE` - MIT License
-
-#### Manufacturing Vertical
-- `manufacturing/quality-inspection-analysis.md` - Pass/fail with Cpk calculations
-- `manufacturing/maintenance-log-interpretation.md` - Pattern detection from technician notes
-- `manufacturing/production-anomaly-explanation.md` - Stakeholder-ready explanations
-- `manufacturing/equipment-failure-prediction.md` - RUL estimates with monitoring plans
-
-#### Insurance Vertical
-- `insurance/claims-document-extraction.md` - FNOL extraction with handwritten note handling
-- `insurance/policy-comparison-analysis.md` - Side-by-side policy analysis
-- `insurance/fraud-indicator-detection.md` - Risk scoring for SIU referral
-- `insurance/underwriting-risk-assessment.md` - Multi-factor risk grading
-
-#### Operations Prompts
-- `operations/document-data-extraction.md` - Generic document extraction
-- `operations/email-classification-routing.md` - Email classification with sentiment
-- `operations/meeting-notes-summarization.md` - Meeting transcript to action items
-- `operations/report-generation.md` - Status/executive/incident reports
-
-#### Analysis Prompts
-- `analysis/data-quality-assessment.md` - 6-dimension data quality scoring
-- `analysis/anomaly-explanation.md` - Cause hypothesis with stakeholder messaging
-- `analysis/trend-interpretation.md` - Pattern analysis with projections
-- `analysis/root-cause-analysis.md` - 5-Whys with verification framework
-
-#### Prompt Engineering Templates
-- `templates/structured-output.md` - JSON schema enforcement patterns
-- `templates/few-shot-learning.md` - Example-based instruction patterns
-- `templates/chain-of-thought.md` - Step-by-step reasoning frameworks
-- `templates/error-handling.md` - Graceful degradation patterns
-
----
-
-## Version History Summary
+## Version History
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.1.0 | 2025-01-05 | Healthcare vertical, evaluation framework, agentic templates |
-| 1.0.0 | 2025-01-05 | Initial release with 16 prompts |
+| 0.1.0 | 2025-01-06 | First tagged release, MVEGS infrastructure |
 
 ---
 
 ## Versioning Guidelines
 
-### Prompt Versioning
+This project uses [Semantic Versioning](https://semver.org/):
 
-Individual prompts can be versioned using this scheme:
+- **0.x.x**: Pre-1.0 development, API may change
+- **MAJOR**: Breaking changes to prompt output formats
+- **MINOR**: New prompts, templates, or features
+- **PATCH**: Bug fixes, documentation updates
 
-```
-prompt-name-v1.2.3
-         │ │ │
-         │ │ └── Patch: Wording tweaks, typo fixes, example improvements
-         │ └──── Minor: New examples, edge cases, variable additions
-         └────── Major: Output format changes, structural changes
-```
+### Pre-1.0 Note
 
-### When to Update
-
-| Change Type | Version Bump | Example |
-|-------------|--------------|---------|
-| Fix typo in prompt | Patch | 1.0.0 → 1.0.1 |
-| Add new example | Minor | 1.0.1 → 1.1.0 |
-| Change output schema | Major | 1.1.0 → 2.0.0 |
-| Add new variable | Minor | 1.1.0 → 1.2.0 |
-| Improve instructions | Patch | 1.2.0 → 1.2.1 |
+While in 0.x.x versions:
+- Prompt output formats may change without major version bump
+- Test coverage is still being expanded
+- Breaking changes will be documented but may occur in minor versions
 
 ---
 
 ## Migration Notes
 
-### From 1.0.0 to 1.1.0
+### Future: 0.x.x to 1.0.0
 
-No breaking changes. New features are additive:
-- New healthcare prompts can be adopted incrementally
-- Evaluation framework is optional but recommended
-- Existing prompts unchanged except for error-handling.md fix
-
-### Future Considerations
-
-When major versions are released with breaking changes, migration guides will be provided here.
+When 1.0.0 is released:
+- All prompt output formats will be locked
+- Breaking changes will require major version bumps
+- Comprehensive test coverage will be required

@@ -1,0 +1,15 @@
+# Evaluation framework dependencies
+
+# Required
+pyyaml>=6.0
+
+# Optional - for API evaluation
+anthropic>=0.18.0
+
+# Optional - for pretty output
+rich>=13.0
+
+# Development
+pytest>=7.0
+ruff>=0.1.0
+yamllint>=1.32.0

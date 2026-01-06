@@ -1,39 +1,87 @@
 # Enterprise Prompt Library
 
-**Production-tested prompts for enterprise AI applications.**
+[![CI](https://github.com/GoodAI-Global/prompt-library/actions/workflows/ci.yml/badge.svg)](https://github.com/GoodAI-Global/prompt-library/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Built by [Good AI](https://good.ai) — "Leverage, not lore."
-
----
-
-## Philosophy
-
-This isn't a collection of experiments. Every prompt here has been:
-- Tested with real production data
-- Refined through multiple iterations
-- Validated against edge cases
-- Structured for consistent outputs
-
-**Evidence over opinions.** Each prompt includes specific examples and documented failure modes.
+A curated collection of prompt templates for enterprise AI applications.
 
 ---
 
-## Quick Navigation
+## What This Is
+
+- **20 prompt templates** across 5 industries (Healthcare, Insurance, Manufacturing, Operations, Analysis)
+- **8 reusable patterns** for common prompt engineering challenges
+- **Evaluation framework** for testing prompts against golden test cases
+- **Consistent structure** with examples, gotchas, and model recommendations
+
+## What This Is NOT
+
+- **Not a plug-and-play SDK** - These are templates, not production code
+- **Not exhaustively tested** - Prompts have been validated but not battle-tested at scale
+- **Not a replacement for domain expertise** - Healthcare/insurance prompts require SME review
+- **Not model-agnostic** - Optimized for Claude, may need adjustment for other models
+
+---
+
+## Quickstart (5 minutes)
+
+### 1. Clone and explore
+
+```bash
+git clone https://github.com/GoodAI-Global/prompt-library.git
+cd prompt-library
+```
+
+### 2. Pick a prompt
+
+Browse by industry or function:
+
+| Category | Prompts | Example |
+|----------|---------|---------|
+| [Healthcare](./healthcare/) | 4 | Clinical notes, medical coding |
+| [Insurance](./insurance/) | 4 | Claims extraction, fraud detection |
+| [Manufacturing](./manufacturing/) | 4 | Quality inspection, maintenance |
+| [Operations](./operations/) | 4 | Document extraction, email routing |
+| [Analysis](./analysis/) | 4 | Root cause, anomaly explanation |
+
+### 3. Copy and customize
+
+Each prompt uses `{{variable}}` placeholders:
+
+```bash
+# Read a prompt
+cat operations/document-data-extraction.md
+
+# Find variables
+grep -o '{{[^}]*}}' operations/document-data-extraction.md
+```
+
+### 4. Run validation (optional)
+
+```bash
+make setup      # Install dependencies
+make validate   # Check syntax
+make test       # Run unit tests
+```
+
+---
+
+## Prompt Templates
 
 ### By Industry
 
 | Industry | Prompts | Description |
 |----------|---------|-------------|
-| [Healthcare](./healthcare/) | 4 prompts | Clinical notes, prior auth, medical coding, intake |
-| [Manufacturing](./manufacturing/) | 4 prompts | Quality control, maintenance, anomaly detection |
-| [Insurance](./insurance/) | 4 prompts | Claims processing, fraud detection, underwriting |
+| [Healthcare](./healthcare/) | 4 | Clinical notes, prior auth, medical coding, intake |
+| [Manufacturing](./manufacturing/) | 4 | Quality control, maintenance, anomaly detection |
+| [Insurance](./insurance/) | 4 | Claims processing, fraud detection, underwriting |
 
 ### By Function
 
 | Function | Prompts | Description |
 |----------|---------|-------------|
-| [Operations](./operations/) | 4 prompts | Document extraction, email routing, summarization |
-| [Analysis](./analysis/) | 4 prompts | Data quality, anomaly explanation, root cause |
+| [Operations](./operations/) | 4 | Document extraction, email routing, summarization |
+| [Analysis](./analysis/) | 4 | Data quality, anomaly explanation, root cause |
 
 ### Prompt Engineering Patterns
 
@@ -53,129 +101,62 @@ This isn't a collection of experiments. Every prompt here has been:
 | [Human-in-the-Loop](./templates/human-in-the-loop.md) | Approval workflows and oversight |
 | [Retrieval-Augmented](./templates/retrieval-augmented.md) | Document-grounded responses (RAG) |
 
-### Combining Templates with Domain Prompts
-
-Templates are designed to be **layered on top of** domain-specific prompts:
-
-| Domain Prompt | Recommended Templates |
-|---------------|----------------------|
-| Document extraction prompts | [Structured Output](./templates/structured-output.md) + [Error Handling](./templates/error-handling.md) |
-| Clinical/medical prompts | [Chain of Thought](./templates/chain-of-thought.md) + [Human-in-the-Loop](./templates/human-in-the-loop.md) |
-| Analysis prompts | [Chain of Thought](./templates/chain-of-thought.md) + [Few-Shot Learning](./templates/few-shot-learning.md) |
-| High-volume processing | [Structured Output](./templates/structured-output.md) + [Error Handling](./templates/error-handling.md) |
-| Agentic workflows | [Tool Use](./templates/tool-use.md) + [Multi-Step Agent](./templates/multi-step-agent.md) |
-| Knowledge-grounded tasks | [Retrieval-Augmented](./templates/retrieval-augmented.md) + [Structured Output](./templates/structured-output.md) |
-
 ---
 
-## Directory Structure
+## Prompt Structure
 
-```
-prompt-library/
-├── README.md                 # You are here
-├── LICENSE                   # MIT License
-├── PRINCIPLES.md             # Core prompt engineering principles
-├── CHANGELOG.md              # Version history
-├── healthcare/
-│   ├── clinical-notes-summarization.md
-│   ├── prior-authorization-extraction.md
-│   ├── medical-coding-assistance.md
-│   └── patient-intake-extraction.md
-├── manufacturing/
-│   ├── quality-inspection-analysis.md
-│   ├── maintenance-log-interpretation.md
-│   ├── production-anomaly-explanation.md
-│   └── equipment-failure-prediction.md
-├── insurance/
-│   ├── claims-document-extraction.md
-│   ├── policy-comparison-analysis.md
-│   ├── fraud-indicator-detection.md
-│   └── underwriting-risk-assessment.md
-├── operations/
-│   ├── document-data-extraction.md
-│   ├── email-classification-routing.md
-│   ├── meeting-notes-summarization.md
-│   └── report-generation.md
-├── analysis/
-│   ├── data-quality-assessment.md
-│   ├── anomaly-explanation.md
-│   ├── trend-interpretation.md
-│   └── root-cause-analysis.md
-├── templates/
-│   ├── structured-output.md
-│   ├── few-shot-learning.md
-│   ├── chain-of-thought.md
-│   ├── error-handling.md
-│   ├── tool-use.md
-│   ├── multi-step-agent.md
-│   ├── human-in-the-loop.md
-│   └── retrieval-augmented.md
-└── evals/
-    ├── README.md             # Evaluation framework docs
-    ├── run_evals.py          # Test runner
-    ├── config.yaml           # Configuration
-    ├── metrics/              # Accuracy, latency, cost metrics
-    └── test-cases/           # Golden test cases per prompt
-```
-
----
-
-## Prompt File Structure
-
-Every prompt in this library follows a consistent structure:
+Every prompt follows this structure:
 
 ```markdown
 # [Prompt Name]
 
-## Use Case
-When to use this prompt. Specific scenarios.
-
-## Input Format
-What data to provide. Required fields. Optional fields.
-
-## Output Format
-Exact structure expected. JSON schema if applicable.
-
-## The Prompt
-[Actual prompt text with {{variables}}]
-
-## Variables
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-
-## Examples
-### Example 1: [Scenario Name]
-### Example 2: [Edge Case]
-
-## Gotchas
-- Common failure modes
-- Edge cases to handle
-- When NOT to use this prompt
-
-## Model Recommendations
-- Best: [models]
-- Acceptable: [models]
-- Not recommended: [models]
+## Use Case           - When to use this prompt
+## Input Format       - Required and optional fields
+## Output Format      - Expected JSON schema
+## The Prompt         - Actual prompt with {{variables}}
+## Variables          - Variable reference table
+## Examples           - 2+ working examples
+## Gotchas            - Common failure modes
+## Model Recommendations - Which models work best
 ```
+
+See [PRINCIPLES.md](./PRINCIPLES.md) for design philosophy.
 
 ---
 
-## Getting Started
+## Development
 
-### 1. Choose Your Prompt
-Browse by [industry](#by-industry) or [function](#by-function).
+### Setup
 
-### 2. Understand the Template
-Read the [PRINCIPLES.md](./PRINCIPLES.md) for core concepts.
+```bash
+make setup   # Install Python dependencies
+```
 
-### 3. Customize Variables
-Each prompt uses `{{variable}}` syntax. Replace with your data.
+### Commands
 
-### 4. Test with Examples
-Run the provided examples first to validate your integration.
+```bash
+make lint      # Run linters
+make validate  # Check syntax
+make test      # Run unit tests
+make eval-dry  # Dry run evaluation (no API key)
+make eval      # Run evaluation (requires ANTHROPIC_API_KEY)
+make clean     # Remove generated files
+```
 
-### 5. Handle Edge Cases
-Review the "Gotchas" section before production deployment.
+### Evaluation Framework
+
+```bash
+cd evals
+
+# List test cases
+python run_evals.py --dry-run
+
+# Run with API key
+export ANTHROPIC_API_KEY="your-key"
+python run_evals.py --category operations
+```
+
+See [evals/README.md](./evals/README.md) for details.
 
 ---
 
@@ -183,57 +164,28 @@ Review the "Gotchas" section before production deployment.
 
 | Model | Best For | Notes |
 |-------|----------|-------|
-| Claude Opus 4.1 | Complex reasoning, nuanced extraction | Highest accuracy for ambiguous cases |
-| Claude Sonnet 4 | Balanced speed/accuracy | Good for most production use |
-| GPT-4o | Complex reasoning, vision tasks | Strong alternative |
-| GPT-4o-mini | High-volume, simpler tasks | Cost-effective for classification |
-| Claude Haiku 3.5 | High-volume processing | Fastest, use for simple extraction |
-
----
-
-## Testing & Evaluation
-
-This library includes a comprehensive evaluation framework for regression testing and model comparison.
-
-### Quick Start
-
-```bash
-# Install dependencies
-pip install anthropic pyyaml rich
-
-# Set API key
-export ANTHROPIC_API_KEY="your-key"
-
-# Run all evaluations
-python evals/run_evals.py
-
-# Run specific category
-python evals/run_evals.py --category operations
-
-# Run with accuracy threshold
-python evals/run_evals.py --fail-under 95
-```
-
-### What's Included
-
-- **Test Cases**: Golden test cases for each prompt category
-- **Metrics**: Accuracy, latency, and cost tracking
-- **CI Integration**: GitHub Actions workflow for automated testing
-- **Model Comparison**: Compare outputs across different models
-
-See [evals/README.md](./evals/README.md) for complete documentation.
+| Claude Opus 4 | Complex reasoning, nuanced extraction | Highest accuracy |
+| Claude Sonnet 4 | Balanced speed/accuracy | Recommended for most use |
+| Claude Haiku 3.5 | High-volume, simple tasks | Cost-effective |
+| GPT-4o | Complex reasoning, vision | Strong alternative |
 
 ---
 
 ## Contributing
 
-This is a production library. Contributions must include:
-1. Real-world test results
-2. At least 2 working examples
-3. Documented failure modes
-4. Edge case handling
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+Requirements:
+- Follow prompt structure template
+- Include 2+ working examples
+- Document failure modes
+- Test with at least one model
+
+---
+
+## Security
+
+See [SECURITY.md](./SECURITY.md) for security policy and reporting vulnerabilities.
 
 ---
 
@@ -243,4 +195,10 @@ MIT License - See [LICENSE](./LICENSE)
 
 ---
 
-**Built for practitioners who ship.**
+## Links
+
+- [Changelog](./CHANGELOG.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Releasing](./RELEASING.md)

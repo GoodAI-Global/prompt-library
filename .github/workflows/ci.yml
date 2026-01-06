@@ -1,0 +1,183 @@
+# CI Pipeline - Lint, Test, Validate
+# Runs on every push and pull request
+# No API keys required - all tests are deterministic
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff yamllint
+
+      - name: Lint Python files
+        run: ruff check evals/
+
+      - name: Lint YAML files
+        run: yamllint -d relaxed evals/config.yaml evals/test-cases/
+
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Validate Python syntax
+        run: |
+          python -m py_compile evals/run_evals.py
+          python -m py_compile evals/metrics/__init__.py
+          python -m py_compile evals/metrics/accuracy.py
+          python -m py_compile evals/metrics/latency.py
+          python -m py_compile evals/metrics/cost.py
+
+      - name: Validate YAML syntax
+        run: |
+          python -c "
+          import yaml
+          import sys
+          from pathlib import Path
+
+          errors = []
+          for f in Path('evals/test-cases').rglob('*.yaml'):
+              try:
+                  yaml.safe_load(f.read_text())
+              except Exception as e:
+                  errors.append(f'{f}: {e}')
+
+          if errors:
+              for e in errors:
+                  print(f'ERROR: {e}')
+              sys.exit(1)
+          print('All YAML files valid')
+          "
+
+      - name: Validate prompt structure
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+
+          required_sections = [
+              '## Use Case',
+              '## The Prompt',
+              '## Variables',
+              '## Examples',
+              '## Gotchas',
+              '## Model Recommendations'
+          ]
+
+          errors = []
+          for category in ['operations', 'insurance', 'manufacturing', 'healthcare', 'analysis']:
+              for f in Path(category).glob('*.md'):
+                  content = f.read_text()
+                  missing = [s for s in required_sections if s not in content]
+                  if missing:
+                      errors.append(f'{f}: Missing sections: {missing}')
+
+          if errors:
+              for e in errors:
+                  print(f'ERROR: {e}')
+              sys.exit(1)
+          print('All prompts have required sections')
+          "
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml pytest
+
+      - name: Run unit tests
+        run: pytest evals/tests/ -v
+
+      - name: Dry run evaluation framework
+        run: |
+          cd evals && python run_evals.py --dry-run
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for secrets
+        run: |
+          # Check for common secret patterns
+          if grep -rn "sk-[a-zA-Z0-9]\{20,\}" --include="*.py" --include="*.yaml" --include="*.md" .; then
+            echo "ERROR: Potential API key found"
+            exit 1
+          fi
+
+          # Check for AWS keys
+          if grep -rn "AKIA[A-Z0-9]\{16\}" --include="*.py" --include="*.yaml" --include="*.md" .; then
+            echo "ERROR: Potential AWS key found"
+            exit 1
+          fi
+
+          echo "No secrets detected"
+
+      - name: Validate safe example data
+        run: |
+          python -c "
+          import re
+          import sys
+          from pathlib import Path
+
+          issues = []
+
+          # Check for potentially real emails (not @example.com variants)
+          suspicious_email = re.compile(r'[a-zA-Z0-9._%+-]+@(?!example\.|email\.|test\.|good\.ai)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+
+          for f in Path('.').rglob('*.md'):
+              content = f.read_text()
+              matches = suspicious_email.findall(content)
+              if matches:
+                  # Filter out common safe patterns
+                  real_matches = [m for m in matches if not any(safe in m for safe in ['@techcorp.com', '@email.com'])]
+                  if real_matches:
+                      issues.append(f'{f}: Suspicious emails: {real_matches[:3]}')
+
+          if issues:
+              print('WARNING: Review these potential real emails:')
+              for i in issues[:5]:
+                  print(f'  {i}')
+              # Warning only, don't fail
+          print('Security check complete')
+          "
