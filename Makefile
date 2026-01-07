@@ -68,10 +68,10 @@ validate:
 # Unit tests - no API key required
 test:
 	@echo "Running validator tests..."
-	pytest tests/ -v --cov=src --cov-report=term-missing
+	python -m pytest tests/ -v --cov=src --cov-report=term-missing
 	@echo ""
 	@echo "Running eval framework tests..."
-	pytest evals/tests/ -v
+	python -m pytest evals/tests/ -v
 	@echo ""
 	@echo "✓ Tests complete."
 
